@@ -171,37 +171,4 @@ function createPrintPages(){
 
 }
 
-document.getElementById("pdfBtn").onclick = async ()=>{
-  if(resultArea.innerHTML.trim()===""){
-    alert("Please calculate SMBC first.");
-    return;
-  }
 
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF("p","mm","a4");
-
-  const canvas = await html2canvas(resultArea,{scale:2});
-  const img = canvas.toDataURL("image/png");
-
-  const pageWidth=210;
-  const pageHeight=297;
-
-  const imgWidth=pageWidth-10;
-  const imgHeight=canvas.height*imgWidth/canvas.width;
-
-  let heightLeft=imgHeight;
-  let position=5;
-
-  pdf.addImage(img,"PNG",5,position,imgWidth,imgHeight);
-  heightLeft-=pageHeight-10;
-
-  while(heightLeft>0){
-    position=heightLeft-imgHeight+5;
-    pdf.addPage();
-    pdf.addImage(img,"PNG",5,position,imgWidth,imgHeight);
-    heightLeft-=pageHeight-10;
-  }
-
-  pdf.save("SMBC_Result.pdf");
-};
-      
