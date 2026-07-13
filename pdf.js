@@ -118,3 +118,14 @@ PDFEngine.hasResults = function () {
     return this.getBlocks().length > 0;
 
 };
+
+// ==========================================
+// PDF Engine v3.1
+// Part 3
+// ==========================================
+
+PDFEngine.export = async function () {
+
+    alert("PDF Engine Export Started");
+
+};
