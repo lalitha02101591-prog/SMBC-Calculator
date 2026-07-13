@@ -172,7 +172,14 @@ function createPrintPages(){
 }
 
 document.getElementById("pdfBtn").onclick = function () {
-    alert("NEW SCRIPT LOADED");
+
+    if (!PDFEngine.hasResults()) {
+        alert("Please calculate SMBC first.");
+        return;
+    }
+
+    PDFEngine.export();
+
 };
 
 
