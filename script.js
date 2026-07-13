@@ -171,4 +171,22 @@ function createPrintPages(){
 
 }
 
+document.getElementById("pdfBtn").onclick = function () {
+
+    if (!PDFEngine.hasResults()) {
+
+        alert("Please calculate SMBC first.");
+
+        return;
+
+    }
+
+    PDFEngine.renderPages();
+
+    alert(
+        "PDF Engine v3.1 is active.\n\nPart 3 will generate the PDF."
+    );
+
+};
+
 
