@@ -88,7 +88,11 @@ function createPairBlock(a,b){
 
   block.innerHTML=`
     <div style="font-weight:bold;font-size:18px">${fmt(a)} &amp; ${fmt(b)}</div>
-    <div style="text-align:center;font-size:22px;font-weight:bold;margin:8px 0">${fmt(c)}</div>
+    <div style="text-align:center;font-size:22px;font-weight:bold;margin:8px 0">
+    ${fmt(c)}
+    <br>
+    ${fmt(d)}
+</div>
 
     <table style="width:100%;border-collapse:collapse">
       <tr>
