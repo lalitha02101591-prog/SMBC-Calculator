@@ -173,12 +173,17 @@ function createPrintPages(){
 
 document.getElementById("pdfBtn").onclick = function () {
 
-    if (!PDFEngine.hasResults()) {
-        alert("Please calculate SMBC first.");
-        return;
-    }
+    try {
 
-    PDFEngine.export();
+        alert("Button clicked");
+
+        PDFEngine.export();
+
+    } catch (e) {
+
+        alert("ERROR:\n\n" + e.message);
+
+    }
 
 };
 
