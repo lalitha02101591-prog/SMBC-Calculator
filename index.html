@@ -1,51 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SMBC Calculator</title>
-
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SMBC Calculator</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
-
-    <div class="container">
-
-        <header>
-            <h1>SMBC Calculator</h1>
-            <p class="subtitle">
-                Personal SMBC Calculation Tool
-            </p>
-        </header>
-
-        <main>
-
-            <!-- Dynamic Input Sections -->
-            <div id="inputArea"></div>
-
-            <!-- Buttons -->
-            <div class="buttonArea">
-    <button id="calculateBtn">
-        Calculate SMBC
-    </button>
-
-    <button id="clearBtn">
-        Clear
-    </button>
-
-    <button id="pdfBtn">
-        Download PDF
-    </button>
+<div class="container">
+<header><h1>SMBC Calculator</h1><p class="subtitle">Personal SMBC Calculation Tool</p></header>
+<main>
+<div id="inputArea"></div>
+<div class="buttonArea">
+<button id="calculateBtn">Calculate SMBC</button>
+<button id="clearBtn">Clear</button>
+<button id="pdfBtn">Download PDF</button>
 </div>
-
-            <!-- Results -->
-            <div id="resultArea"></div>
-
-        </main>
-
-    </div>
-
-    <script src="script.js"></script>
-
+<div id="resultArea"></div>
+</main>
+</div>
+<script src="script.js"></script>
 </body>
 </html>
