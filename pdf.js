@@ -124,8 +124,9 @@ PDFEngine.hasResults = function () {
 // Part 3
 // ==========================================
 
-PDFEngine.export = async function () {
+PDFEngine.export = function () {
 
-    alert("PDF Engine Export Started");
+    alert("EXPORT FUNCTION WORKING");
 
 };
+
