@@ -176,14 +176,4 @@ document.getElementById("pdfBtn").onclick = function () {
 };
 
 
-    }
-
-    PDFEngine.renderPages();
-
-    alert(
-        "PDF Engine v3.1 is active.\n\nPart 3 will generate the PDF."
-    );
-
-};
-
 
