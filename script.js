@@ -135,6 +135,42 @@ document.getElementById("clearBtn").onclick=()=>{
   resultArea.innerHTML="";
 };
 
+
+function createPrintPages(){
+
+    const pages=[];
+
+    const blocks=[...resultArea.querySelectorAll(".pairBlock")];
+
+    let page=null;
+    let grid=null;
+
+    blocks.forEach((block,index)=>{
+
+        if(index%12===0){
+
+            page=document.createElement("div");
+            page.className="pdfPage";
+
+            grid=document.createElement("div");
+            grid.className="pdfGrid";
+
+            page.appendChild(grid);
+
+            pages.push(page);
+
+        }
+
+        const clone=block.cloneNode(true);
+
+        grid.appendChild(clone);
+
+    });
+
+    return pages;
+
+}
+
 document.getElementById("pdfBtn").onclick = async ()=>{
   if(resultArea.innerHTML.trim()===""){
     alert("Please calculate SMBC first.");
