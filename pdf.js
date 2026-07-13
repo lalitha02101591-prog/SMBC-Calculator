@@ -69,3 +69,52 @@ const PDFEngine = {
 };
 
 console.log("SMBC PDF Engine v3.1 loaded");
+
+// ==========================================
+// PDF Engine v3.1
+// Part 2
+// ==========================================
+
+PDFEngine.renderPages = function () {
+
+    this.removeHiddenContainer();
+
+    const container = this.createHiddenContainer();
+
+    const pages = this.splitIntoPages(
+        this.getBlocks()
+    );
+
+    pages.forEach(pageBlocks => {
+
+        const page = document.createElement("div");
+        page.className = "pdfPage";
+
+        const grid = document.createElement("div");
+        grid.className = "pdfGrid";
+
+        page.appendChild(grid);
+
+        pageBlocks.forEach(block => {
+
+            const copy = block.cloneNode(true);
+
+            copy.style.margin = "0";
+
+            grid.appendChild(copy);
+
+        });
+
+        container.appendChild(page);
+
+    });
+
+    return container;
+
+};
+
+PDFEngine.hasResults = function () {
+
+    return this.getBlocks().length > 0;
+
+};
