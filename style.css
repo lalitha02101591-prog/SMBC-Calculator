@@ -1,1 +1,118 @@
+/* ==========================
+   SMBC Calculator v1.0
+========================== */
 
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, Helvetica, sans-serif;
+}
+
+body{
+    background:#f3f5f7;
+    color:#222;
+    padding:20px;
+}
+
+.container{
+    max-width:1200px;
+    margin:auto;
+}
+
+header{
+    text-align:center;
+    margin-bottom:25px;
+}
+
+header h1{
+    color:#0b5ed7;
+    margin-bottom:8px;
+}
+
+.subtitle{
+    color:#666;
+}
+
+.section{
+    background:#fff;
+    border-radius:8px;
+    margin-bottom:15px;
+    overflow:hidden;
+    box-shadow:0 2px 6px rgba(0,0,0,.1);
+}
+
+.sectionHeader{
+    background:#0b5ed7;
+    color:#fff;
+    padding:12px 15px;
+    font-size:18px;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+.sectionBody{
+    display:none;
+    padding:15px;
+}
+
+.subtitleBlock{
+    margin-bottom:18px;
+}
+
+.subtitleBlock label{
+    display:block;
+    margin-bottom:6px;
+    font-weight:bold;
+}
+
+.subtitleBlock textarea{
+    width:100%;
+    min-height:70px;
+    padding:10px;
+    resize:vertical;
+    border:1px solid #bbb;
+    border-radius:6px;
+}
+
+.buttonArea{
+    text-align:center;
+    margin:25px 0;
+}
+
+button{
+    padding:10px 18px;
+    margin:5px;
+    border:none;
+    border-radius:6px;
+    background:#0b5ed7;
+    color:#fff;
+    cursor:pointer;
+    font-size:16px;
+}
+
+button:hover{
+    opacity:.9;
+}
+
+#resultArea{
+    margin-top:30px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-bottom:20px;
+}
+
+table th,
+table td{
+    border:1px solid #ccc;
+    padding:8px;
+    text-align:center;
+}
+
+table th{
+    background:#0b5ed7;
+    color:#fff;
+}
