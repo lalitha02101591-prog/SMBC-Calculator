@@ -72,59 +72,7 @@ window.PDFEngine = {
 
 console.log("SMBC PDF Engine v3.1 loaded");
 
-// ==========================================
-// PDF Engine v3.1
-// Part 2
-// ==========================================
-
-PDFEngine.renderPages = function () {
-
-    this.removeHiddenContainer();
-
-    const container = this.createHiddenContainer();
-
-    const pages = this.splitIntoPages(this.getBlocks());
-
-    pages.forEach((pageBlocks) => {
-
-        const page = document.createElement("div");
-
-        page.className = "pdfPage";
-
-        page.style.width = "794px";
-        page.style.height = "1123px";
-        page.style.background = "#fff";
-        page.style.boxSizing = "border-box";
-        page.style.padding = "15px";
-
-        const grid = document.createElement("div");
-
-        grid.className = "pdfGrid";
-
-        grid.style.display = "grid";
-        grid.style.gridTemplateColumns = "repeat(4,1fr)";
-        grid.style.gridTemplateRows = "repeat(3,1fr)";
-        grid.style.gap = "10px";
-        grid.style.width = "100%";
-        grid.style.height = "100%";
-
-        pageBlocks.forEach((block) => {
-
-            const copy = block.cloneNode(true);
-
-            copy.style.margin = "0";
-            copy.style.width = "100%";
-            copy.style.height = "100%";
-            copy.style.boxSizing = "border-box";
-            copy.style.breakInside = "avoid";
-
-            grid.appendChild(copy);
-
-        });
-
-        page.appendChild(grid);
-
-        container.appendChild(page);
+// =
 
     });
 
@@ -151,90 +99,122 @@ PDFEngine.capturePage = async function (pageElement) {
 
 };
 
-// ==========================================
-// Check whether results exist
-// ==========================================
 
-PDFEngine.hasResults = function () {
 
-    return this.getBlocks().length > 0;
+/* ==========================================================
+   Part 2
+   DOM Builder Module
+   ========================================================== */
 
-};
 
-// ==========================================
-// Build PDF from rendered pages
-// ==========================================
+/* ----------------------------------------------------------
+   Validate export requirements
+---------------------------------------------------------- */
 
-PDFEngine.buildPDF = async function () {
+function validateExport() {
 
-    const { jsPDF } = window.jspdf;
+    if (!window.html2canvas) {
+        throw new Error("html2canvas library not loaded.");
+    }
 
-    const pdf = new jsPDF({
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4",
-        compress: true
+    if (!window.jspdf) {
+        throw new Error("jsPDF library not loaded.");
+    }
+
+    if (!window.resultArea) {
+        throw new Error("resultArea not found.");
+    }
+
+    const blocks = resultArea.querySelectorAll(".pairBlock");
+
+    if (blocks.length === 0) {
+        throw new Error("Please calculate the SMBC results before exporting.");
+    }
+
+    if (typeof createPrintPages !== "function") {
+        throw new Error("createPrintPages() is missing.");
+    }
+
+}
+
+
+/* ----------------------------------------------------------
+   Build printable pages
+---------------------------------------------------------- */
+
+function buildPages() {
+
+    const pages = createPrintPages();
+
+    if (!pages || pages.length === 0) {
+        throw new Error("No printable pages were generated.");
+    }
+
+    return pages;
+
+}
+
+
+/* ----------------------------------------------------------
+   Hidden render container
+---------------------------------------------------------- */
+
+function createRenderHost() {
+
+    const host = document.createElement("div");
+
+    host.id = "smbc_pdf_render_host";
+
+    host.style.position = "fixed";
+    host.style.left = "-100000px";
+    host.style.top = "0";
+
+    host.style.width = "210mm";
+    host.style.background = "#ffffff";
+
+    host.style.zIndex = "-9999";
+
+    document.body.appendChild(host);
+
+    return host;
+
+}
+
+
+/* ----------------------------------------------------------
+   Remove render container
+---------------------------------------------------------- */
+
+function destroyRenderHost(host) {
+
+    if (host && host.parentNode) {
+        host.parentNode.removeChild(host);
+    }
+
+}
+
+
+/* ----------------------------------------------------------
+   Insert printable pages
+---------------------------------------------------------- */
+
+function mountPages(host, pages) {
+
+    pages.forEach(page => {
+
+        host.appendChild(clone(page));
+
     });
 
-    const container = this.renderPages();
-
-    const pages = [...container.querySelectorAll(".pdfPage")];
-
-    for (let i = 0; i < pages.length; i++) {
-
-        const canvas = await this.capturePage(pages[i]);
-
-        const imgData = canvas.toDataURL("image/jpeg", 1.0);
-
-        if (i > 0) {
-            pdf.addPage();
-        }
-
-        pdf.addImage(
-            imgData,
-            "JPEG",
-            0,
-            0,
-            this.pageWidth,
-            this.pageHeight,
-            undefined,
-            "FAST"
-        );
-
-    }
-
-    this.removeHiddenContainer();
-
-    return pdf;
-
-};
+}
 
 
-// ==========================================
-// Export PDF
-// ==========================================
+/* ----------------------------------------------------------
+   Return mounted pages
+---------------------------------------------------------- */
 
-PDFEngine.export = async function () {
+function getMountedPages(host) {
 
-    try {
+    return [...host.querySelectorAll(".pdfPage")];
 
-        if (!this.hasResults()) {
-            alert("Please perform the calculations first.");
-            return;
-        }
-
-        const pdf = await this.buildPDF();
-
-        pdf.save("SMBC_Calculation.pdf");
-
-    } catch (err) {
-
-        this.removeHiddenContainer();
-
-        console.error(err);
-
-        alert("PDF ERROR:\n\n" + err.message);
-
-    }
-
-};
+}
