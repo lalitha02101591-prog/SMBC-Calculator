@@ -1,13 +1,15 @@
 // ==========================================
-// SMBC PDF Engine v3.1
-// Part 1
+// SMBC PDF Engine v4.0
+// Chunk 1
 // ==========================================
-
 
 "use strict";
 
-
 window.PDFEngine = {
+
+    // --------------------------------------
+    // Page Configuration
+    // --------------------------------------
 
     pageWidth: 210,
     pageHeight: 297,
@@ -19,9 +21,23 @@ window.PDFEngine = {
 
     margin: 5,
 
+    fileName: "SMBC_Calculation.pdf",
+
+    // --------------------------------------
+    // Get Result Blocks
+    // --------------------------------------
+
     getBlocks() {
-        return [...document.querySelectorAll(".pairBlock")];
+
+        return Array.from(
+            document.querySelectorAll("#resultArea .pairBlock")
+        );
+
     },
+
+    // --------------------------------------
+    // Split Blocks Into Pages
+    // --------------------------------------
 
     splitIntoPages(blocks) {
 
@@ -39,16 +55,28 @@ window.PDFEngine = {
 
     },
 
+    // --------------------------------------
+    // Hidden Print Container
+    // --------------------------------------
+
     createHiddenContainer() {
+
+        const old = document.getElementById("pdfRenderContainer");
+
+        if (old) {
+            old.remove();
+        }
 
         const container = document.createElement("div");
 
-        container.id = "pdfContainer";
+        container.id = "pdfRenderContainer";
 
-        container.style.position = "fixed";
-        container.style.left = "-10000px";
+        container.style.position = "absolute";
+        container.style.left = "-100000px";
         container.style.top = "0";
+        container.style.width = "210mm";
         container.style.background = "#ffffff";
+        container.style.zIndex = "-1";
 
         document.body.appendChild(container);
 
@@ -56,387 +84,158 @@ window.PDFEngine = {
 
     },
 
-    removeHiddenContainer() {
+    // --------------------------------------
+    // Remove Hidden Container
+    // --------------------------------------
 
-        const node = document.getElementById("pdfContainer");
+    removeHiddenContainer(container) {
 
-        if (node) {
+        if (container && container.parentNode) {
 
-            node.remove();
+            container.parentNode.removeChild(container);
+
+        }
+
+    },
+
+        // --------------------------------------
+    // Build Printable Pages
+    // --------------------------------------
+
+    buildPages(pageGroups, container) {
+
+        const pages = [];
+
+        pageGroups.forEach(group => {
+
+            const page = document.createElement("div");
+            page.className = "pdfPage";
+
+            const grid = document.createElement("div");
+            grid.className = "pdfGrid";
+
+            page.appendChild(grid);
+
+            group.forEach(block => {
+
+                const clone = block.cloneNode(true);
+
+                clone.style.margin = "0";
+                clone.style.width = "100%";
+                clone.style.height = "100%";
+                clone.style.boxSizing = "border-box";
+
+                grid.appendChild(clone);
+
+            });
+
+            container.appendChild(page);
+
+            pages.push(page);
+
+        });
+
+        return pages;
+
+    },
+
+    // --------------------------------------
+    // Render One Page
+    // --------------------------------------
+
+    async renderPage(page) {
+
+        return await html2canvas(page, {
+
+            backgroundColor: "#ffffff",
+
+            scale: 2,
+
+            useCORS: true,
+
+            logging: false
+
+        });
+
+    },
+
+    // --------------------------------------
+    // Create jsPDF Instance
+    // --------------------------------------
+
+    createPDF() {
+
+        return new jspdf.jsPDF({
+
+            orientation: "portrait",
+
+            unit: "mm",
+
+            format: "a4",
+
+            compress: true
+
+        });
+
+    },
+
+        // --------------------------------------
+    // Export PDF
+    // --------------------------------------
+
+    async export() {
+
+        const blocks = this.getBlocks();
+
+        if (blocks.length === 0) {
+
+            alert("Please calculate SMBC first.");
+
+            return;
+
+        }
+
+        const container = this.createHiddenContainer();
+
+        try {
+
+            const pageGroups = this.splitIntoPages(blocks);
+
+            const pages = this.buildPages(pageGroups, container);
+
+            const pdf = this.createPDF();
+
+            for (let i = 0; i < pages.length; i++) {
+
+                const canvas = await this.renderPage(pages[i]);
+
+                const imgData = canvas.toDataURL("image/jpeg", 1.0);
+
+                if (i > 0) {
+
+                    pdf.addPage();
+
+                }
+
+                pdf.addImage(
+                    imgData,
+                    "JPEG",
+                    0,
+                    0,
+                    this.pageWidth,
+                    this.pageHeight
+                );
+
+            }
+
+            pdf.save(this.fileName);
+
+        } finally {
+
+            this.removeHiddenContainer(container);
 
         }
 
     }
 
 };
-
-console.log("SMBC PDF Engine v3.1 loaded");
-
-// =
-
-    });
-
-    return container;
-
-};
-
-
-// ==========================================
-// Capture one rendered PDF page
-// ==========================================
-
-PDFEngine.capturePage = async function (pageElement) {
-
-    const canvas = await html2canvas(pageElement, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-        logging: false,
-        allowTaint: true
-    });
-
-    return canvas;
-
-};
-
-
-
-/* ==========================================================
-   Part 2
-   DOM Builder Module
-   ========================================================== */
-
-
-/* ----------------------------------------------------------
-   Validate export requirements
----------------------------------------------------------- */
-
-function validateExport() {
-
-    if (!window.html2canvas) {
-        throw new Error("html2canvas library not loaded.");
-    }
-
-    if (!window.jspdf) {
-        throw new Error("jsPDF library not loaded.");
-    }
-
-    if (!window.resultArea) {
-        throw new Error("resultArea not found.");
-    }
-
-    const blocks = resultArea.querySelectorAll(".pairBlock");
-
-    if (blocks.length === 0) {
-        throw new Error("Please calculate the SMBC results before exporting.");
-    }
-
-    if (typeof createPrintPages !== "function") {
-        throw new Error("createPrintPages() is missing.");
-    }
-
-}
-
-
-/* ----------------------------------------------------------
-   Build printable pages
----------------------------------------------------------- */
-
-function buildPages() {
-
-    const pages = createPrintPages();
-
-    if (!pages || pages.length === 0) {
-        throw new Error("No printable pages were generated.");
-    }
-
-    return pages;
-
-}
-
-
-/* ----------------------------------------------------------
-   Hidden render container
----------------------------------------------------------- */
-
-function createRenderHost() {
-
-    const host = document.createElement("div");
-
-    host.id = "smbc_pdf_render_host";
-
-    host.style.position = "fixed";
-    host.style.left = "-100000px";
-    host.style.top = "0";
-
-    host.style.width = "210mm";
-    host.style.background = "#ffffff";
-
-    host.style.zIndex = "-9999";
-
-    document.body.appendChild(host);
-
-    return host;
-
-}
-
-
-/* ----------------------------------------------------------
-   Remove render container
----------------------------------------------------------- */
-
-function destroyRenderHost(host) {
-
-    if (host && host.parentNode) {
-        host.parentNode.removeChild(host);
-    }
-
-}
-
-
-/* ----------------------------------------------------------
-   Insert printable pages
----------------------------------------------------------- */
-
-function mountPages(host, pages) {
-
-    pages.forEach(page => {
-
-        host.appendChild(clone(page));
-
-    });
-
-}
-
-/* ==========================================================
-   Part 3
-   html2canvas Rendering Module
-   ========================================================== */
-
-
-/* ----------------------------------------------------------
-   Render one page
----------------------------------------------------------- */
-
-async function renderPage(pageElement) {
-
-    const canvas = await html2canvas(pageElement, {
-
-        scale: CONFIG.render.scale,
-        useCORS: CONFIG.render.useCORS,
-        backgroundColor: CONFIG.render.backgroundColor,
-        logging: false
-
-    });
-
-    return canvas;
-
-}
-
-
-/* ----------------------------------------------------------
-   Render all pages
----------------------------------------------------------- */
-
-async function renderAllPages(pageElements) {
-
-    const canvases = [];
-
-    for (const page of pageElements) {
-
-        const canvas = await renderPage(page);
-
-        canvases.push(canvas);
-
-    }
-
-    return canvases;
-
-}
-
-
-/* ----------------------------------------------------------
-   Canvas → Image
----------------------------------------------------------- */
-
-function canvasToImage(canvas) {
-
-    return canvas.toDataURL(
-        "image/jpeg",
-        1.0
-    );
-
-}
-
-
-/* ----------------------------------------------------------
-   Convert all canvases
----------------------------------------------------------- */
-
-function convertAllImages(canvases) {
-
-    return canvases.map(canvasToImage);
-
-}
-
-
-/* ----------------------------------------------------------
-   Render Pipeline
----------------------------------------------------------- */
-
-async function renderPipeline() {
-
-    validateExport();
-
-    createPDF();
-
-    resetCursor();
-
-    const pages = buildPages();
-
-    const host = createRenderHost();
-
-    try {
-
-        mountPages(host, pages);
-
-        const mountedPages = getMountedPages(host);
-
-        const canvases = await renderAllPages(mountedPages);
-
-        return convertAllImages(canvases);
-
-    } finally {
-
-        destroyRenderHost(host);
-
-    }
-
-}
-
-/* ==========================================================
-   Part 4
-   jsPDF Composition Module
-   ========================================================== */
-
-
-/* ----------------------------------------------------------
-   Add one image to the PDF
----------------------------------------------------------- */
-
-function addImageToPDF(imageData, isFirstPage) {
-
-    if (!isFirstPage) {
-        Runtime.pdf.addPage();
-    }
-
-    Runtime.pdf.addImage(
-        imageData,
-        "JPEG",
-        0,
-        0,
-        Runtime.pageWidth,
-        Runtime.pageHeight,
-        undefined,
-        "FAST"
-    );
-
-}
-
-
-/* ----------------------------------------------------------
-   Build the complete PDF
----------------------------------------------------------- */
-
-function composePDF(images) {
-
-    if (!images || images.length === 0) {
-        throw new Error("No rendered pages available.");
-    }
-
-    images.forEach((image, index) => {
-        addImageToPDF(image, index === 0);
-    });
-
-}
-
-
-/* ----------------------------------------------------------
-   Generate default filename
----------------------------------------------------------- */
-
-function createFileName() {
-
-    const now = new Date();
-
-    const yyyy = now.getFullYear();
-
-    const mm = String(now.getMonth() + 1).padStart(2, "0");
-
-    const dd = String(now.getDate()).padStart(2, "0");
-
-    const hh = String(now.getHours()).padStart(2, "0");
-
-    const mi = String(now.getMinutes()).padStart(2, "0");
-
-    return `SMBC_${yyyy}${mm}${dd}_${hh}${mi}.pdf`;
-
-}
-
-
-/* ----------------------------------------------------------
-   Save PDF
----------------------------------------------------------- */
-
-function savePDF(fileName) {
-
-    Runtime.pdf.save(fileName);
-
-}
-/* ----------------------------------------------------------
-   Return mounted pages
----------------------------------------------------------- */
-
-function getMountedPages(host) {
-
-    return [...host.querySelectorAll(".pdfPage")];
-
-}
-
-
-/* ==========================================================
-   Part 5
-   Export API
-   ========================================================== */
-
-async function exportPDF() {
-
-    const button = document.getElementById("pdfBtn");
-
-    const originalText = button ? button.textContent : "";
-
-    try {
-
-        if (button) {
-            button.disabled = true;
-            button.textContent = "Generating PDF...";
-        }
-
-        const images = await renderPipeline();
-
-        composePDF(images);
-
-        savePDF(createFileName());
-
-    } finally {
-
-        if (button) {
-            button.disabled = false;
-            button.textContent = originalText;
-        }
-
-    }
-
-}
-
-
