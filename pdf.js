@@ -1,15 +1,11 @@
 // ==========================================
-// SMBC PDF Engine v4.0
+// SMBC PDF Engine v4.1
 // Chunk 1
 // ==========================================
 
 "use strict";
 
 window.PDFEngine = {
-
-    // --------------------------------------
-    // Page Configuration
-    // --------------------------------------
 
     pageWidth: 210,
     pageHeight: 297,
@@ -24,29 +20,59 @@ window.PDFEngine = {
     fileName: "SMBC_Calculation.pdf",
 
     // --------------------------------------
-    // Get Result Blocks
+    // Collect headings and pair blocks
     // --------------------------------------
 
-    getBlocks() {
+    getContent() {
 
-        return Array.from(
-            document.querySelectorAll("#resultArea .pairBlock")
-        );
+        const result = document.getElementById("resultArea");
+
+        const items = [];
+
+        let currentTitle = "";
+
+        [...result.children].forEach(node => {
+
+            if (node.tagName === "H2") {
+
+                currentTitle = node.textContent.trim();
+
+                return;
+
+            }
+
+            if (node.classList.contains("pairBlock")) {
+
+                items.push({
+
+                    title: currentTitle,
+
+                    block: node
+
+                });
+
+            }
+
+        });
+
+        return items;
 
     },
 
     // --------------------------------------
-    // Split Blocks Into Pages
+    // Split into pages
     // --------------------------------------
 
-    splitIntoPages(blocks) {
+    splitIntoPages(items) {
 
         const pages = [];
 
-        for (let i = 0; i < blocks.length; i += this.blocksPerPage) {
+        for (let i = 0; i < items.length; i += this.blocksPerPage) {
 
             pages.push(
-                blocks.slice(i, i + this.blocksPerPage)
+
+                items.slice(i, i + this.blocksPerPage)
+
             );
 
         }
@@ -56,16 +82,14 @@ window.PDFEngine = {
     },
 
     // --------------------------------------
-    // Hidden Print Container
+    // Hidden rendering container
     // --------------------------------------
 
-    createHiddenContainer() {
+    createContainer() {
 
         const old = document.getElementById("pdfRenderContainer");
 
-        if (old) {
-            old.remove();
-        }
+        if (old) old.remove();
 
         const container = document.createElement("div");
 
@@ -76,7 +100,6 @@ window.PDFEngine = {
         container.style.top = "0";
         container.style.width = "210mm";
         container.style.background = "#ffffff";
-        container.style.zIndex = "-1";
 
         document.body.appendChild(container);
 
@@ -84,11 +107,7 @@ window.PDFEngine = {
 
     },
 
-    // --------------------------------------
-    // Remove Hidden Container
-    // --------------------------------------
-
-    removeHiddenContainer(container) {
+    removeContainer(container) {
 
         if (container && container.parentNode) {
 
@@ -98,7 +117,7 @@ window.PDFEngine = {
 
     },
 
-        // --------------------------------------
+    // --------------------------------------
     // Build Printable Pages
     // --------------------------------------
 
@@ -116,40 +135,40 @@ window.PDFEngine = {
 
             page.appendChild(grid);
 
-            group.forEach(block => {
+            group.forEach(item => {
 
+                const clone = item.block.cloneNode(true);
 
-const clone = block.cloneNode(true);
+                clone.style.margin = "0";
+                clone.style.width = "100%";
+                clone.style.height = "100%";
+                clone.style.boxSizing = "border-box";
+                clone.style.display = "flex";
+                clone.style.flexDirection = "column";
 
-clone.style.margin = "0";
-clone.style.width = "100%";
-clone.style.height = "100%";
-clone.style.boxSizing = "border-box";
+                if (item.title) {
 
-// --------------------------------------
-// Copy section title (SD 05, SD 16, etc.)
-// --------------------------------------
+                    const heading = document.createElement("div");
 
-const prev = block.previousElementSibling;
+                    heading.textContent = item.title;
 
-if (prev && prev.tagName === "H2") {
+                    heading.style.fontSize = "16px";
+                    heading.style.fontWeight = "bold";
+                    heading.style.textAlign = "center";
+                    heading.style.marginBottom = "6px";
+                    heading.style.borderBottom = "1px solid #999";
+                    heading.style.paddingBottom = "4px";
 
-    const title = document.createElement("div");
+                    clone.insertBefore(
+                        heading,
+                        clone.firstChild
+                    );
 
-    title.textContent = prev.textContent;
+                }
 
-    title.style.fontSize = "16pt";
-    title.style.fontWeight = "bold";
-    title.style.textAlign = "center";
-    title.style.marginBottom = "8px";
+                grid.appendChild(clone);
 
-    clone.insertBefore(title, clone.firstChild);
-
-}
-
-grid.appendChild(clone);
-                
-});
+            });
 
             container.appendChild(page);
 
@@ -162,7 +181,7 @@ grid.appendChild(clone);
     },
 
     // --------------------------------------
-    // Render One Page
+    // Render Page
     // --------------------------------------
 
     async renderPage(page) {
@@ -182,7 +201,7 @@ grid.appendChild(clone);
     },
 
     // --------------------------------------
-    // Create jsPDF Instance
+    // Create jsPDF
     // --------------------------------------
 
     createPDF() {
@@ -201,15 +220,15 @@ grid.appendChild(clone);
 
     },
 
-        // --------------------------------------
+    // --------------------------------------
     // Export PDF
     // --------------------------------------
 
     async export() {
 
-        const blocks = this.getBlocks();
+        const items = this.getContent();
 
-        if (blocks.length === 0) {
+        if (items.length === 0) {
 
             alert("Please calculate SMBC first.");
 
@@ -217,11 +236,11 @@ grid.appendChild(clone);
 
         }
 
-        const container = this.createHiddenContainer();
+        const container = this.createContainer();
 
         try {
 
-            const pageGroups = this.splitIntoPages(blocks);
+            const pageGroups = this.splitIntoPages(items);
 
             const pages = this.buildPages(pageGroups, container);
 
@@ -252,9 +271,15 @@ grid.appendChild(clone);
 
             pdf.save(this.fileName);
 
+        } catch (err) {
+
+            console.error(err);
+
+            alert("PDF generation failed:\n\n" + err.message);
+
         } finally {
 
-            this.removeHiddenContainer(container);
+            this.removeContainer(container);
 
         }
 
