@@ -152,46 +152,79 @@ PDFEngine.capturePage = async function (pageElement) {
 };
 
 // ==========================================
-// PDF Engine v3.1
-// Part 3
+// Build PDF from rendered pages
+// ==========================================
+
+PDFEngine.buildPDF = async function () {
+
+    const { jsPDF } = window.jspdf;
+
+    const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+        compress: true
+    });
+
+    const container = this.renderPages();
+
+    const pages = [...container.querySelectorAll(".pdfPage")];
+
+    for (let i = 0; i < pages.length; i++) {
+
+        const canvas = await this.capturePage(pages[i]);
+
+        const imgData = canvas.toDataURL("image/jpeg", 1.0);
+
+        if (i > 0) {
+            pdf.addPage();
+        }
+
+        pdf.addImage(
+            imgData,
+            "JPEG",
+            0,
+            0,
+            this.pageWidth,
+            this.pageHeight,
+            undefined,
+            "FAST"
+        );
+
+    }
+
+    this.removeHiddenContainer();
+
+    return pdf;
+
+};
+
+
+// ==========================================
+// Export PDF
 // ==========================================
 
 PDFEngine.export = async function () {
 
     try {
 
-        const { jsPDF } = window.jspdf;
+        if (!this.hasResults()) {
+            alert("Please perform the calculations first.");
+            return;
+        }
 
-        const pdf = new jsPDF({
-            orientation: "portrait",
-            unit: "mm",
-            format: "a4"
-        });
+        const pdf = await this.buildPDF();
 
-        pdf.setFont("helvetica", "bold");
-        pdf.setFontSize(18);
-
-        pdf.text("SMBC PDF Engine Test", 20, 20);
-
-        pdf.setFontSize(12);
-
-        pdf.text(
-            "If you can read this, PDFEngine.export() is working.",
-            20,
-            35
-        );
-
-        pdf.save("SMBC_Test.pdf");
+        pdf.save("SMBC_Calculation.pdf");
 
     } catch (err) {
 
-        alert(
-            "PDF ERROR:\n\n" + err.message
-        );
+        this.removeHiddenContainer();
 
         console.error(err);
+
+        alert("PDF ERROR:\n\n" + err.message);
 
     }
 
 };
-
