@@ -149,7 +149,7 @@ if (prev && prev.tagName === "H2") {
 
 grid.appendChild(clone);
                 
-}
+});
 
             container.appendChild(page);
 
