@@ -8,7 +8,7 @@ alert("pdf.js loaded");
 "use strict";
 
 
-const PDFEngine = {
+window.PDFEngine = {
 
     pageWidth: 210,
     pageHeight: 297,
