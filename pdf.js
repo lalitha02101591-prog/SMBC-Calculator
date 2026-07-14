@@ -118,16 +118,38 @@ window.PDFEngine = {
 
             group.forEach(block => {
 
-                const clone = block.cloneNode(true);
 
-                clone.style.margin = "0";
-                clone.style.width = "100%";
-                clone.style.height = "100%";
-                clone.style.boxSizing = "border-box";
+const clone = block.cloneNode(true);
 
-                grid.appendChild(clone);
+clone.style.margin = "0";
+clone.style.width = "100%";
+clone.style.height = "100%";
+clone.style.boxSizing = "border-box";
 
-            });
+// --------------------------------------
+// Copy section title (SD 05, SD 16, etc.)
+// --------------------------------------
+
+const prev = block.previousElementSibling;
+
+if (prev && prev.tagName === "H2") {
+
+    const title = document.createElement("div");
+
+    title.textContent = prev.textContent;
+
+    title.style.fontSize = "16pt";
+    title.style.fontWeight = "bold";
+    title.style.textAlign = "center";
+    title.style.marginBottom = "8px";
+
+    clone.insertBefore(title, clone.firstChild);
+
+}
+
+grid.appendChild(clone);
+                
+}
 
             container.appendChild(page);
 
