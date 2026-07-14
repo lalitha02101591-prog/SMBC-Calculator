@@ -83,41 +83,52 @@ PDFEngine.renderPages = function () {
 
     const container = this.createHiddenContainer();
 
-    const pages = this.splitIntoPages(
-        this.getBlocks()
-    );
+    const pages = this.splitIntoPages(this.getBlocks());
 
-    pages.forEach(pageBlocks => {
+    pages.forEach((pageBlocks) => {
 
         const page = document.createElement("div");
+
         page.className = "pdfPage";
 
+        page.style.width = "794px";
+        page.style.height = "1123px";
+        page.style.background = "#fff";
+        page.style.boxSizing = "border-box";
+        page.style.padding = "15px";
+
         const grid = document.createElement("div");
+
         grid.className = "pdfGrid";
 
-        page.appendChild(grid);
+        grid.style.display = "grid";
+        grid.style.gridTemplateColumns = "repeat(4,1fr)";
+        grid.style.gridTemplateRows = "repeat(3,1fr)";
+        grid.style.gap = "10px";
+        grid.style.width = "100%";
+        grid.style.height = "100%";
 
-        pageBlocks.forEach(block => {
+        pageBlocks.forEach((block) => {
 
             const copy = block.cloneNode(true);
 
             copy.style.margin = "0";
+            copy.style.width = "100%";
+            copy.style.height = "100%";
+            copy.style.boxSizing = "border-box";
+            copy.style.breakInside = "avoid";
 
             grid.appendChild(copy);
 
         });
+
+        page.appendChild(grid);
 
         container.appendChild(page);
 
     });
 
     return container;
-
-};
-
-PDFEngine.hasResults = function () {
-
-    return this.getBlocks().length > 0;
 
 };
 
