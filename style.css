@@ -141,19 +141,60 @@ table th{
 
     page-break-after:always;
 
+.pdfPage{
+
+    width:210mm;
+    height:297mm;
+
+    background:#fff;
+
+    padding:5mm;
+
+    box-sizing:border-box;
+
+    page-break-after:always;
+
 }
 
 .pdfGrid{
 
+    width:100%;
+    height:100%;
+
     display:grid;
 
-    grid-template-columns:repeat(4,1fr);
+    grid-template-columns:repeat(4,46mm);
 
-    grid-template-rows:repeat(3,1fr);
+    grid-template-rows:repeat(3,88mm);
 
-    gap:6mm;
+    justify-content:space-between;
+
+    align-content:space-between;
+
+    gap:2mm;
 
 }
+
+.pdfGrid .pairBlock{
+
+    width:46mm;
+
+    height:88mm;
+
+    overflow:hidden;
+
+    margin:0;
+
+    padding:2mm;
+
+    box-sizing:border-box;
+
+    break-inside:avoid;
+
+    page-break-inside:avoid;
+
+}
+
 
 .pdfGrid .pairBlock{
 
