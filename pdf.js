@@ -314,7 +314,85 @@ async function renderPipeline() {
 
 }
 
+/* ==========================================================
+   Part 4
+   jsPDF Composition Module
+   ========================================================== */
 
+
+/* ----------------------------------------------------------
+   Add one image to the PDF
+---------------------------------------------------------- */
+
+function addImageToPDF(imageData, isFirstPage) {
+
+    if (!isFirstPage) {
+        Runtime.pdf.addPage();
+    }
+
+    Runtime.pdf.addImage(
+        imageData,
+        "JPEG",
+        0,
+        0,
+        Runtime.pageWidth,
+        Runtime.pageHeight,
+        undefined,
+        "FAST"
+    );
+
+}
+
+
+/* ----------------------------------------------------------
+   Build the complete PDF
+---------------------------------------------------------- */
+
+function composePDF(images) {
+
+    if (!images || images.length === 0) {
+        throw new Error("No rendered pages available.");
+    }
+
+    images.forEach((image, index) => {
+        addImageToPDF(image, index === 0);
+    });
+
+}
+
+
+/* ----------------------------------------------------------
+   Generate default filename
+---------------------------------------------------------- */
+
+function createFileName() {
+
+    const now = new Date();
+
+    const yyyy = now.getFullYear();
+
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+
+    const dd = String(now.getDate()).padStart(2, "0");
+
+    const hh = String(now.getHours()).padStart(2, "0");
+
+    const mi = String(now.getMinutes()).padStart(2, "0");
+
+    return `SMBC_${yyyy}${mm}${dd}_${hh}${mi}.pdf`;
+
+}
+
+
+/* ----------------------------------------------------------
+   Save PDF
+---------------------------------------------------------- */
+
+function savePDF(fileName) {
+
+    Runtime.pdf.save(fileName);
+
+}
 /* ----------------------------------------------------------
    Return mounted pages
 ---------------------------------------------------------- */
@@ -324,4 +402,41 @@ function getMountedPages(host) {
     return [...host.querySelectorAll(".pdfPage")];
 
 }
+
+
+/* ==========================================================
+   Part 5
+   Export API
+   ========================================================== */
+
+async function exportPDF() {
+
+    const button = document.getElementById("pdfBtn");
+
+    const originalText = button ? button.textContent : "";
+
+    try {
+
+        if (button) {
+            button.disabled = true;
+            button.textContent = "Generating PDF...";
+        }
+
+        const images = await renderPipeline();
+
+        composePDF(images);
+
+        savePDF(createFileName());
+
+    } finally {
+
+        if (button) {
+            button.disabled = false;
+            button.textContent = originalText;
+        }
+
+    }
+
+}
+
 
