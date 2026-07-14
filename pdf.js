@@ -1,6 +1,7 @@
 // ==========================================
-// SMBC PDF Engine v4.1
+// SMBC PDF Engine v4.2
 // Chunk 1
+// Standalone PDF Engine
 // ==========================================
 
 "use strict";
@@ -17,272 +18,297 @@ window.PDFEngine = {
 
     margin: 5,
 
-    fileName: "SMBC_Calculation.pdf",
+    async export() {
 
-    // --------------------------------------
-    // Collect headings and pair blocks
-    // --------------------------------------
+        const resultArea = document.getElementById("resultArea");
 
-    getContent() {
+        if (!resultArea || !resultArea.querySelector(".pairBlock")) {
+            alert("Please calculate SMBC first.");
+            return;
+        }
 
-        const result = document.getElementById("resultArea");
+        const { jsPDF } = window.jspdf;
 
-        const items = [];
-
-        let currentTitle = "";
-
-        [...result.children].forEach(node => {
-
-            if (node.tagName === "H2") {
-
-                currentTitle = node.textContent.trim();
-
-                return;
-
-            }
-
-            if (node.classList.contains("pairBlock")) {
-
-                items.push({
-
-                    title: currentTitle,
-
-                    block: node
-
-                });
-
-            }
-
+        const pdf = new jsPDF({
+            orientation: "portrait",
+            unit: "mm",
+            format: "a4",
+            compress: true
         });
 
-        return items;
+        const pages = this.createPrintPages();
+
+        for (let i = 0; i < pages.length; i++) {
+
+            if (i > 0) pdf.addPage();
+
+            const canvas = await html2canvas(pages[i], {
+                scale: 2,
+                backgroundColor: "#ffffff",
+                useCORS: true
+            });
+
+            const img = canvas.toDataURL("image/png");
+
+            pdf.addImage(
+                img,
+                "PNG",
+                0,
+                0,
+                this.pageWidth,
+                this.pageHeight,
+                undefined,
+                "FAST"
+            );
+        }
+
+        pdf.save("SMBC.pdf");
+
+        this.removeHiddenContainer();
 
     },
 
-    // --------------------------------------
-    // Split into pages
-    // --------------------------------------
+    createPrintPages() {
 
-    splitIntoPages(items) {
+        const container = this.createHiddenContainer();
 
         const pages = [];
 
-        for (let i = 0; i < items.length; i += this.blocksPerPage) {
+        const sections = this.getSections();
+
+        sections.forEach(section => {
+
+            const blocks = [...section.querySelectorAll(".pairBlock")];
+
+            const blockPages = this.splitIntoPages(blocks);
+
+            blockPages.forEach(blockSet => {
+
+                const page = this.createPage(section, blockSet);
+
+                container.appendChild(page);
+
+                pages.push(page);
+
+            });
+
+        });
+
+        return pages;
+
+    },
+
+    splitIntoPages(blocks) {
+
+        const pages = [];
+
+        for (let i = 0; i < blocks.length; i += this.blocksPerPage) {
 
             pages.push(
-
-                items.slice(i, i + this.blocksPerPage)
-
+                blocks.slice(i, i + this.blocksPerPage)
             );
 
         }
 
-        return pages;
-
-    },
-
-    // --------------------------------------
-    // Hidden rendering container
-    // --------------------------------------
-
-    createContainer() {
-
-        const old = document.getElementById("pdfRenderContainer");
-
-        if (old) old.remove();
-
-        const container = document.createElement("div");
-
-        container.id = "pdfRenderContainer";
-
-        container.style.position = "absolute";
-        container.style.left = "-100000px";
-        container.style.top = "0";
-        container.style.width = "210mm";
-        container.style.background = "#ffffff";
-
-        document.body.appendChild(container);
-
-        return container;
-
-    },
-
-    removeContainer(container) {
-
-        if (container && container.parentNode) {
-
-            container.parentNode.removeChild(container);
-
-        }
-
-    },
-
-    // --------------------------------------
-    // Build Printable Pages
-    // --------------------------------------
-
-    buildPages(pageGroups, container) {
-
-        const pages = [];
-
-        pageGroups.forEach(group => {
-
-            const page = document.createElement("div");
-            page.className = "pdfPage";
-
-            const grid = document.createElement("div");
-            grid.className = "pdfGrid";
-
-            page.appendChild(grid);
-
-            group.forEach(item => {
-
-                const clone = item.block.cloneNode(true);
-
-                clone.style.margin = "0";
-                clone.style.width = "100%";
-                clone.style.height = "100%";
-                clone.style.boxSizing = "border-box";
-                clone.style.display = "flex";
-                clone.style.flexDirection = "column";
-
-                if (item.title) {
-
-                    const heading = document.createElement("div");
-
-                    heading.textContent = item.title;
-
-                    heading.style.fontSize = "16px";
-                    heading.style.fontWeight = "bold";
-                    heading.style.textAlign = "center";
-                    heading.style.marginBottom = "6px";
-                    heading.style.borderBottom = "1px solid #999";
-                    heading.style.paddingBottom = "4px";
-
-                    clone.insertBefore(
-                        heading,
-                        clone.firstChild
-                    );
-
-                }
-
-                grid.appendChild(clone);
-
-            });
-
-            container.appendChild(page);
-
-            pages.push(page);
-
-        });
+        if (pages.length === 0) pages.push([]);
 
         return pages;
 
     },
 
-    // --------------------------------------
-    // Render Page
-    // --------------------------------------
+    // ==========================================
+// SMBC PDF Engine v4.2
+// Chunk 2
+// ==========================================
 
-    async renderPage(page) {
+    getSections() {
 
-        return await html2canvas(page, {
+        const resultArea = document.getElementById("resultArea");
 
-            backgroundColor: "#ffffff",
+        const sections = [];
 
-            scale: 2,
+        let current = null;
 
-            useCORS: true,
+        [...resultArea.children].forEach(node => {
 
-            logging: false
+            const cls = node.classList;
 
-        });
+            if (
+                cls.contains("subTitle") ||
+                cls.contains("subtitle") ||
+                cls.contains("sectionTitle")
+            ) {
 
-    },
+                current = document.createElement("div");
+                current.className = "pdfSection";
 
-    // --------------------------------------
-    // Create jsPDF
-    // --------------------------------------
+                current.appendChild(node.cloneNode(true));
 
-    createPDF() {
+                sections.push(current);
 
-        return new jspdf.jsPDF({
+                return;
+            }
 
-            orientation: "portrait",
+            if (!current) {
 
-            unit: "mm",
+                current = document.createElement("div");
+                current.className = "pdfSection";
 
-            format: "a4",
-
-            compress: true
-
-        });
-
-    },
-
-    // --------------------------------------
-    // Export PDF
-    // --------------------------------------
-
-    async export() {
-
-        const items = this.getContent();
-
-        if (items.length === 0) {
-
-            alert("Please calculate SMBC first.");
-
-            return;
-
-        }
-
-        const container = this.createContainer();
-
-        try {
-
-            const pageGroups = this.splitIntoPages(items);
-
-            const pages = this.buildPages(pageGroups, container);
-
-            const pdf = this.createPDF();
-
-            for (let i = 0; i < pages.length; i++) {
-
-                const canvas = await this.renderPage(pages[i]);
-
-                const imgData = canvas.toDataURL("image/jpeg", 1.0);
-
-                if (i > 0) {
-
-                    pdf.addPage();
-
-                }
-
-                pdf.addImage(
-                    imgData,
-                    "JPEG",
-                    0,
-                    0,
-                    this.pageWidth,
-                    this.pageHeight
-                );
+                sections.push(current);
 
             }
 
-            pdf.save(this.fileName);
+            if (cls.contains("pairBlock")) {
 
-        } catch (err) {
+                current.appendChild(node.cloneNode(true));
 
-            console.error(err);
+            }
 
-            alert("PDF generation failed:\n\n" + err.message);
+        });
 
-        } finally {
+        return sections;
 
-            this.removeContainer(container);
+    },
+
+    createPage(section, blocks) {
+
+        const page = document.createElement("div");
+        page.className = "pdfPage";
+
+        const title = section.firstElementChild
+            ? section.firstElementChild.cloneNode(true)
+            : document.createElement("div");
+
+        title.classList.add("pdfHeading");
+
+        page.appendChild(title);
+
+        const grid = document.createElement("div");
+        grid.className = "pdfGrid";
+
+        page.appendChild(grid);
+
+        blocks.forEach(block => {
+
+            grid.appendChild(block.cloneNode(true));
+
+        });
+
+        while (grid.children.length < this.blocksPerPage) {
+
+            const blank = document.createElement("div");
+            blank.className = "pairBlock pdfBlank";
+
+            grid.appendChild(blank);
 
         }
+
+        return page;
+
+    },
+
+    createHiddenContainer() {
+
+        this.removeHiddenContainer();
+
+        const div = document.createElement("div");
+
+        div.id = "__pdfContainer";
+
+        div.style.position = "fixed";
+        div.style.left = "-100000px";
+        div.style.top = "0";
+        div.style.width = "210mm";
+        div.style.background = "#fff";
+        div.style.zIndex = "-1";
+
+        document.body.appendChild(div);
+
+        return div;
+
+    },
+
+    
+// ==========================================
+// SMBC PDF Engine v4.2
+// Chunk 3
+// ==========================================
+
+    removeHiddenContainer() {
+
+        const old = document.getElementById("__pdfContainer");
+
+        if (old) old.remove();
+
+    },
+
+    injectStyles() {
+
+        if (document.getElementById("__pdfStyles")) return;
+
+        const style = document.createElement("style");
+
+        style.id = "__pdfStyles";
+
+        style.textContent = `
+
+#___dummy___{}
+
+#__pdfContainer{
+    font-family:Arial,sans-serif;
+}
+
+.pdfPage{
+    width:210mm;
+    height:297mm;
+    box-sizing:border-box;
+    padding:5mm;
+    background:#fff;
+    overflow:hidden;
+    page-break-after:always;
+}
+
+.pdfHeading{
+    font-size:14pt;
+    font-weight:bold;
+    text-align:center;
+    margin-bottom:4mm;
+}
+
+.pdfGrid{
+
+    display:grid;
+
+    grid-template-columns:repeat(4,1fr);
+
+    grid-template-rows:repeat(3,1fr);
+
+    gap:3mm;
+
+    height:278mm;
+
+}
+
+.pdfGrid>.pairBlock{
+
+    box-sizing:border-box;
+
+    overflow:hidden;
+
+}
+
+.pdfBlank{
+
+    visibility:hidden;
+
+}
+
+`;
+
+        document.head.appendChild(style);
 
     }
 
 };
+
+PDFEngine.injectStyles();
