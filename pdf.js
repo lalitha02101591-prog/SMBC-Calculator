@@ -124,9 +124,47 @@ PDFEngine.hasResults = function () {
 // Part 3
 // ==========================================
 
-PDFEngine.export = function () {
+// ==========================================
+// PDF Engine v3.1
+// Part 3
+// ==========================================
 
-    alert("EXPORT FUNCTION WORKING");
+PDFEngine.export = async function () {
+
+    try {
+
+        const { jsPDF } = window.jspdf;
+
+        const pdf = new jsPDF({
+            orientation: "portrait",
+            unit: "mm",
+            format: "a4"
+        });
+
+        pdf.setFont("helvetica", "bold");
+        pdf.setFontSize(18);
+
+        pdf.text("SMBC PDF Engine Test", 20, 20);
+
+        pdf.setFontSize(12);
+
+        pdf.text(
+            "If you can read this, PDFEngine.export() is working.",
+            20,
+            35
+        );
+
+        pdf.save("SMBC_Test.pdf");
+
+    } catch (err) {
+
+        alert(
+            "PDF ERROR:\n\n" + err.message
+        );
+
+        console.error(err);
+
+    }
 
 };
 
