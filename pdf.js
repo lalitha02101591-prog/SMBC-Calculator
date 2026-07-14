@@ -152,6 +152,16 @@ PDFEngine.capturePage = async function (pageElement) {
 };
 
 // ==========================================
+// Check whether results exist
+// ==========================================
+
+PDFEngine.hasResults = function () {
+
+    return this.getBlocks().length > 0;
+
+};
+
+// ==========================================
 // Build PDF from rendered pages
 // ==========================================
 
