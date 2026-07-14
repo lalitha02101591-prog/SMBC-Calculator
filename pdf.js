@@ -208,6 +208,112 @@ function mountPages(host, pages) {
 
 }
 
+/* ==========================================================
+   Part 3
+   html2canvas Rendering Module
+   ========================================================== */
+
+
+/* ----------------------------------------------------------
+   Render one page
+---------------------------------------------------------- */
+
+async function renderPage(pageElement) {
+
+    const canvas = await html2canvas(pageElement, {
+
+        scale: CONFIG.render.scale,
+        useCORS: CONFIG.render.useCORS,
+        backgroundColor: CONFIG.render.backgroundColor,
+        logging: false
+
+    });
+
+    return canvas;
+
+}
+
+
+/* ----------------------------------------------------------
+   Render all pages
+---------------------------------------------------------- */
+
+async function renderAllPages(pageElements) {
+
+    const canvases = [];
+
+    for (const page of pageElements) {
+
+        const canvas = await renderPage(page);
+
+        canvases.push(canvas);
+
+    }
+
+    return canvases;
+
+}
+
+
+/* ----------------------------------------------------------
+   Canvas → Image
+---------------------------------------------------------- */
+
+function canvasToImage(canvas) {
+
+    return canvas.toDataURL(
+        "image/jpeg",
+        1.0
+    );
+
+}
+
+
+/* ----------------------------------------------------------
+   Convert all canvases
+---------------------------------------------------------- */
+
+function convertAllImages(canvases) {
+
+    return canvases.map(canvasToImage);
+
+}
+
+
+/* ----------------------------------------------------------
+   Render Pipeline
+---------------------------------------------------------- */
+
+async function renderPipeline() {
+
+    validateExport();
+
+    createPDF();
+
+    resetCursor();
+
+    const pages = buildPages();
+
+    const host = createRenderHost();
+
+    try {
+
+        mountPages(host, pages);
+
+        const mountedPages = getMountedPages(host);
+
+        const canvases = await renderAllPages(mountedPages);
+
+        return convertAllImages(canvases);
+
+    } finally {
+
+        destroyRenderHost(host);
+
+    }
+
+}
+
 
 /* ----------------------------------------------------------
    Return mounted pages
@@ -218,3 +324,4 @@ function getMountedPages(host) {
     return [...host.querySelectorAll(".pdfPage")];
 
 }
+
