@@ -132,10 +132,24 @@ PDFEngine.renderPages = function () {
 
 };
 
+
 // ==========================================
-// PDF Engine v3.1
-// Part 3
+// Capture one rendered PDF page
 // ==========================================
+
+PDFEngine.capturePage = async function (pageElement) {
+
+    const canvas = await html2canvas(pageElement, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#ffffff",
+        logging: false,
+        allowTaint: true
+    });
+
+    return canvas;
+
+};
 
 // ==========================================
 // PDF Engine v3.1
