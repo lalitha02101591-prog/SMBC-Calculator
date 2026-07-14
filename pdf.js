@@ -3,7 +3,10 @@
 // Part 1
 // ==========================================
 
+alert("pdf.js loaded");
+
 "use strict";
+
 
 const PDFEngine = {
 
